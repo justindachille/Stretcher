@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Stretch Reminder</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        .container {
+            display: flex;
+            gap: 20px;
+            flex-grow: 1;
+        }
+        .timer-section {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            text-align: center;
+            width: 100%;
+        }
+        .input-section {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            width: 40%;
+            overflow-y: auto;
+        }
+        .video-section {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            width: 60%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        input, button, textarea {
+            margin: 10px 0;
+            padding: 10px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        textarea {
+            height: 150px;
+        }
+        .timer-ready { color: green; font-weight: bold; }
+        .timer-warning { color: orange; font-weight: bold; }
+        .timer-danger { color: red; font-weight: bold; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .delete-btn {
+            background-color: #ff4444;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        #export-import-section {
+            display: flex;
+            gap: 10px;
+        }
+        #stretch-video {
+            width: 100%;
+            aspect-ratio: 16/9;
+        }
+        #clipboard-notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0,0,0,0.7);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            opacity: 0;
+            transition: opacity 0.5s, transform 0.5s;
+            z-index: 1000;
+        }
+        .volume-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 10px 0;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            padding: 10px;
+            font-size: 14px;
+        }
+        .footer a {
+            color: #333;
+            text-decoration: none;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
+        #preset-select {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="clipboard-notification">Copied to Clipboard!</div>
+    <div class="timer-section">
+        <h2>Stretch Reminder</h2>
+        <div id="timer" class="timer-ready">00:00:00</div>
+        <input type="text" id="interval-input" placeholder="Interval (minutes/fraction)" value="30" min="0.1">
+        <div id="export-import-section">
+            <button onclick="startTimer()">Start Timer</button>
+            <button onclick="resetTimer()">Reset Timer</button>
+            <button onclick="exportVideos()">Export Videos</button>
+            <button onclick="loadPreset()">Load Preset</button>
+        </div>
+    </div>
+    <div class="container">
+        <div class="input-section">
+            <h3>Add Stretch Videos</h3>
+            <select id="preset-select">
+                <option value="">Select a preset...</option>
+                <option value="default">Default Stretches</option>
+                <option value="office">Office Worker</option>
+                <option value="yoga">Yoga Basics</option>
+            </select>
+            <textarea id="video-input" placeholder="Format: YouTube URL;Timestamps;Descriptions&#10;One video per line&#10;Example: https://youtube.com/watch?v=dQw4w9WgXcQ;1:00,2:30;First Stretch,Second Stretch"></textarea>
+            <div class="volume-container">
+                <label for="volume-slider">Alarm Volume:</label>
+                <input type="range" id="volume-slider" min="0" max="1" step="0.1" value="0.5">
+            </div>
+            <button onclick="addVideosFromTextarea()">Add Videos</button>
+
+            <table id="video-table">
+                <thead>
+                    <tr>
+                        <th>Video URL</th>
+                        <th>Timestamps</th>
+                        <th>Descriptions</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="video-list"></tbody>
+            </table>
+        </div>
+        <div class="video-section">
+            <h3>Current Stretch</h3>
+            <iframe id="stretch-video" src="" frameborder="0" allowfullscreen></iframe>
+            <p id="stretch-description"></p>
+        </div>
+    </div>
+
+    <div class="footer">
+        Made with ❤️ by <a href="https://github.com/justindachille" target="_blank">Justin</a> | <a href="https://github.com/justindachille/Stretcher">Code</a>
+    </div>
+
+    <audio id="alarm" src="./cool_sms.mp3"></audio>
+
+    <script>
+        let timer;
+        let seconds = 0;
+        let totalInterval = 0;
+        let videos = [];
+        let lastTimerStart = 0;
+        let timerRunning = false;
+
+        // Preset data
+        const presets = {
+            "default": [
+                "https://youtu.be/u-GeMr7G6ho;3:10,4:36,5:32,6:12;Wall clock,Back dorsal,Back lateral,Hip",
+                "https://youtu.be/DC1Z9acFQaY;0:57,2:45,4:00,5:10;Half-kneeling stretch,Doorway pec stretch,Lat stretch,Spinal extension"
+            ],
+        };
+
+        // Load saved data from localStorage on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            // Load videos
+            const savedVideos = localStorage.getItem('stretchVideos');
+            if (savedVideos) {
+                videos = JSON.parse(savedVideos);
+                updateVideoList();
+            }
+
+            // Set volume
+            const savedVolume = localStorage.getItem('alarmVolume');
+            if (savedVolume) {
+                document.getElementById('volume-slider').value = savedVolume;
+                document.getElementById('alarm').volume = savedVolume;
+            }
+
+            // Load timer state
+            const savedTimerState = localStorage.getItem('timerState');
+            if (savedTimerState) {
+                const { interval, elapsedSeconds, startTime } = JSON.parse(savedTimerState);
+                const intervalInput = document.getElementById('interval-input');
+                intervalInput.value = interval / 60; // Convert to minutes
+                totalInterval = interval;
+                
+                if (startTime) {
+                    // Calculate how much time has passed since the timer was started
+                    const now = Math.floor(Date.now() / 1000);
+                    const timePassed = now - startTime;
+                    seconds = elapsedSeconds + timePassed;
+                    
+                    // Check if we've passed the interval
+                    if (seconds >= totalInterval) {
+                        // If we have, play a stretch immediately
+                        seconds = 0;
+                        playRandomStretch();
+                        startTimer(); // Restart the timer
+                    } else {
+                        // Otherwise, continue the timer
+                        startTimer();
+                    }
+                }
+            }
+            
+            updateTimerDisplay();
+        });
+
+        // Save timer state to localStorage
+        function saveTimerState() {
+            const intervalInput = document.getElementById('interval-input');
+            const interval = parseInterval(intervalInput.value);
+            
+            localStorage.setItem('timerState', JSON.stringify({
+                interval: interval,
+                elapsedSeconds: seconds,
+                startTime: timerRunning ? Math.floor(Date.now() / 1000) : null
+            }));
+        }
+
+        // Save videos to localStorage when modified
+        function saveVideosToLocalStorage() {
+            localStorage.setItem('stretchVideos', JSON.stringify(videos));
+        }
+
+        // Volume slider event listener
+        document.getElementById('volume-slider').addEventListener('input', (e) => {
+            const volume = e.target.value;
+            document.getElementById('alarm').volume = volume;
+            localStorage.setItem('alarmVolume', volume);
+        });
+
+        // Hotkey to reset timer
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'r' || event.key === 'R') {
+                resetTimer();
+            }
+        });
+
+        // Alarm dismissal handlers
+        let alarmDismissed = false;
+
+        function stopAlarm() {
+            if (alarmDismissed) return;
+            
+            const alarm = document.getElementById('alarm');
+            if (!alarm.paused) {
+                alarm.pause();
+                alarm.currentTime = 0;
+                alarmDismissed = true;
+                
+                setTimeout(() => alarmDismissed = false, 1000);
+            }
+        }
+
+        document.addEventListener('click', stopAlarm);
+        document.addEventListener('mousemove', stopAlarm);
+        document.addEventListener('keydown', stopAlarm);
+        document.addEventListener('touchstart', stopAlarm);
+        window.addEventListener('focus', stopAlarm);
+
+        function showClipboardNotification() {
+            const notification = document.getElementById('clipboard-notification');
+            notification.style.opacity = '1';
+            notification.style.transform = 'translate(-50%, -20px)';
+            
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transform = 'translate(-50%, 0)';
+            }, 2000);
+        }
+
+        function parseInterval(input) {
+            const parsed = parseFloat(input);
+            if (isNaN(parsed)) {
+                alert('Invalid interval. Please enter a number.');
+                return 0;
+            }
+            return parsed * 60;
+        }
+
+        function startTimer() {
+            const intervalInput = document.getElementById('interval-input');
+            const timerDisplay = document.getElementById('timer');
+            
+            totalInterval = parseInterval(intervalInput.value);
+            
+            if (totalInterval <= 0) return;
+
+            clearInterval(timer);
+            timerRunning = true;
+            
+            // Save the initial timer state
+            saveTimerState();
+
+            timer = setInterval(() => {
+                seconds++;
+                updateTimerDisplay();
+                saveTimerState(); // Save the current state periodically
+
+                if (seconds >= totalInterval * 0.8) {
+                    timerDisplay.className = 'timer-danger';
+                } else if (seconds >= totalInterval * 0.5) {
+                    timerDisplay.className = 'timer-warning';
+                } else {
+                    timerDisplay.className = 'timer-ready';
+                }
+
+                if (seconds >= totalInterval) {
+                    playRandomStretch();
+                    seconds = 0;
+                    saveTimerState(); // Save the reset state
+                }
+            }, 1000);
+        }
+
+        function resetTimer() {
+            clearInterval(timer);
+            seconds = 0;
+            timerRunning = false;
+            updateTimerDisplay();
+            document.getElementById('timer').className = 'timer-ready';
+            saveTimerState();
+        }
+
+        function updateTimerDisplay() {
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            const secs = seconds % 60;
+            document.getElementById('timer').textContent = 
+                `${pad(hours)}:${pad(minutes)}:${pad(secs)}`;
+        }
+
+        function pad(num) {
+            return num.toString().padStart(2, '0');
+        }
+
+        function addVideosFromTextarea() {
+            const videoInput = document.getElementById('video-input');
+            const videoLines = videoInput.value.trim().split('\n');
+
+            videoLines.forEach(line => {
+                const [videoUrl, timestamps, descriptions] = line.split(';');
+                
+                if (videoUrl && timestamps && descriptions) {
+                    const videoId = extractYouTubeId(videoUrl);
+                    
+                    videos.push({
+                        id: videoId,
+                        timestamps: timestamps.split(','),
+                        descriptions: descriptions.split(',')
+                    });
+                }
+            });
+
+            updateVideoList();
+            saveVideosToLocalStorage();
+            videoInput.value = '';
+        }
+
+        function extractYouTubeId(url) {
+            const match = url.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+            return match ? match[1] : null;
+        }
+
+        function updateVideoList() {
+            const videoList = document.getElementById('video-list');
+            videoList.innerHTML = '';
+
+            videos.forEach((video, index) => {
+                const row = videoList.insertRow();
+                row.insertCell(0).textContent = `YouTube Video: ${video.id}`;
+                row.insertCell(1).textContent = video.timestamps.join(', ');
+                row.insertCell(2).textContent = video.descriptions.join(', ');
+                
+                const deleteCell = row.insertCell(3);
+                const deleteBtn = document.createElement('button');
+                deleteBtn.textContent = 'Delete';
+                deleteBtn.classList.add('delete-btn');
+                deleteBtn.onclick = () => {
+                    videos.splice(index, 1);
+                    updateVideoList();
+                    saveVideosToLocalStorage();
+                };
+                deleteCell.appendChild(deleteBtn);
+            });
+        }
+
+        function playRandomStretch() {
+            if (videos.length === 0) {
+                alert('Please add some stretch videos first!');
+                return;
+            }
+
+            const alarm = document.getElementById('alarm');
+            alarm.play();
+
+            if (window.focus) {
+                window.focus();
+            }
+
+            const randomVideo = videos[Math.floor(Math.random() * videos.length)];
+            const randomTimestampIndex = Math.floor(Math.random() * randomVideo.timestamps.length);
+            
+            const videoId = randomVideo.id;
+            const timestamp = randomVideo.timestamps[randomTimestampIndex];
+            const description = randomVideo.descriptions[randomTimestampIndex];
+
+            const video = document.getElementById('stretch-video');
+            const descriptionElement = document.getElementById('stretch-description');
+
+            video.src = `https://www.youtube.com/embed/${videoId}?start=${convertTimestampToSeconds(timestamp)}&autoplay=1`;
+            descriptionElement.textContent = description;
+        }
+
+        function convertTimestampToSeconds(timestamp) {
+            const parts = timestamp.split(':').map(Number);
+            if (parts.length === 2) {
+                return parts[0] * 60 + parts[1];
+            } else if (parts.length === 3) {
+                return parts[0] * 3600 + parts[1] * 60 + parts[2];
+            }
+            return 0;
+        }
+
+        function exportVideos() {
+            const exportText = videos.map(video => 
+                `https://youtu.be/${video.id};${video.timestamps.join(',')};${video.descriptions.join(',')}`
+            ).join('\n');
+
+            navigator.clipboard.writeText(exportText).then(() => {
+                showClipboardNotification();
+            });
+        }
+
+        function loadPreset() {
+            const presetSelect = document.getElementById('preset-select');
+            const presetName = presetSelect.value;
+            
+            if (!presetName) return;
+            
+            const presetVideos = presets[presetName];
+            if (presetVideos) {
+                // Clear current videos
+                videos = [];
+                
+                // Add preset videos
+                presetVideos.forEach(line => {
+                    const [videoUrl, timestamps, descriptions] = line.split(';');
+                    
+                    if (videoUrl && timestamps && descriptions) {
+                        const videoId = extractYouTubeId(videoUrl);
+                        
+                        videos.push({
+                            id: videoId,
+                            timestamps: timestamps.split(','),
+                            descriptions: descriptions.split(',')
+                        });
+                    }
+                });
+
+                updateVideoList();
+                saveVideosToLocalStorage();
+                alert(`Loaded ${presetName} preset with ${presetVideos.length} videos!`);
+            }
+        }
+
+        // Save timer state when the page is about to unload
+        window.addEventListener('beforeunload', saveTimerState);
+    </script>
+</body>
+</html>

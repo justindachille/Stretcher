@@ -5,14 +5,15 @@
     <title>Stretch Reminder</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             max-width: 1600px;
             margin: 0 auto;
             padding: 20px;
-            background-color: #f4f4f4;
+            background-color: #f8f9fa;
             display: flex;
             flex-direction: column;
             height: 100vh;
+            color: #333;
         }
         .container {
             display: flex;
@@ -21,102 +22,160 @@
         }
         .timer-section {
             background-color: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
             text-align: center;
             width: 100%;
         }
         .input-section {
             background-color: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
             width: 40%;
             overflow-y: auto;
         }
         .video-section {
             background-color: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
             width: 60%;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
         }
-        input, button, textarea {
+        h2, h3 {
+            color: #2c3e50;
+            margin-top: 0;
+        }
+        input, button, textarea, select {
             margin: 10px 0;
-            padding: 10px;
+            padding: 12px;
             width: 100%;
             box-sizing: border-box;
-        }
-        textarea {
-            height: 150px;
-        }
-        .timer-ready { color: green; font-weight: bold; }
-        .timer-warning { color: orange; font-weight: bold; }
-        .timer-danger { color: red; font-weight: bold; }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        th, td {
             border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
+            border-radius: 6px;
+            font-size: 16px;
         }
-        .delete-btn {
-            background-color: #ff4444;
+        button {
+            background-color: #3498db;
             color: white;
             border: none;
             cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        button.delete-btn {
+            background-color: #e74c3c;
+        }
+        button.delete-btn:hover {
+            background-color: #c0392b;
+        }
+        button.secondary {
+            background-color: #95a5a6;
+        }
+        button.secondary:hover {
+            background-color: #7f8c8d;
+        }
+        textarea {
+            height: 150px;
+            resize: vertical;
+        }
+        .timer-ready { color: #27ae60; font-weight: bold; }
+        .timer-warning { color: #f39c12; font-weight: bold; }
+        .timer-danger { color: #e74c3c; font-weight: bold; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: 600;
         }
         #export-import-section {
             display: flex;
             gap: 10px;
+            margin-top: 15px;
         }
         #stretch-video {
             width: 100%;
             aspect-ratio: 16/9;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
         #clipboard-notification {
             position: fixed;
             top: 20px;
             left: 50%;
             transform: translateX(-50%);
-            background-color: rgba(0,0,0,0.7);
+            background-color: rgba(0,0,0,0.8);
             color: white;
-            padding: 10px 20px;
-            border-radius: 5px;
+            padding: 12px 24px;
+            border-radius: 6px;
             opacity: 0;
-            transition: opacity 0.5s, transform 0.5s;
+            transition: opacity 0.3s, transform 0.3s;
             z-index: 1000;
+            font-size: 14px;
         }
         .volume-container {
             display: flex;
             align-items: center;
             gap: 10px;
-            margin: 10px 0;
+            margin: 15px 0;
         }
         .footer {
             text-align: center;
             margin-top: 20px;
-            padding: 10px;
+            padding: 15px;
             font-size: 14px;
+            color: #7f8c8d;
         }
         .footer a {
-            color: #333;
+            color: #3498db;
             text-decoration: none;
+            font-weight: 500;
         }
         .footer a:hover {
             text-decoration: underline;
         }
-        #preset-select {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
+        .preset-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+        .preset-section h4 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        #timer {
+            font-size: 32px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+        }
+        #stretch-description {
+            margin-top: 15px;
+            font-size: 18px;
+            font-weight: 500;
+            color: #2c3e50;
         }
     </style>
 </head>
@@ -125,34 +184,40 @@
     <div class="timer-section">
         <h2>Stretch Reminder</h2>
         <div id="timer" class="timer-ready">00:00:00</div>
-        <input type="text" id="interval-input" placeholder="Interval (minutes/fraction)" value="30" min="0.1">
+        <input type="text" id="interval-input" placeholder="Interval (minutes)" value="30" min="0.1">
         <div id="export-import-section">
             <button onclick="startTimer()">Start Timer</button>
             <button onclick="resetTimer()">Reset Timer</button>
             <button onclick="exportVideos()">Export Videos</button>
-            <button onclick="loadPreset()">Load Preset</button>
         </div>
     </div>
     <div class="container">
         <div class="input-section">
-            <h3>Add Stretch Videos</h3>
-            <select id="preset-select">
-                <option value="">Select a preset...</option>
-                <option value="default">Default Stretches</option>
-                <option value="office">Office Worker</option>
-                <option value="yoga">Yoga Basics</option>
-            </select>
-            <textarea id="video-input" placeholder="Format: YouTube URL;Timestamps;Descriptions&#10;One video per line&#10;Example: https://youtube.com/watch?v=dQw4w9WgXcQ;1:00,2:30;First Stretch,Second Stretch"></textarea>
+            <h3>Manage Stretch Videos</h3>
+            
+            <div class="preset-section">
+                <h4>Load Preset</h4>
+                <select id="preset-select" onchange="loadPresetIntoTextarea()">
+                    <option value="">Select a preset...</option>
+                    <option value="default">Default Stretches</option>
+                </select>
+                <div class="button-group">
+                    <button onclick="clearTextarea()" class="secondary">Clear</button>
+                    <button onclick="addVideosFromTextarea()">Add Videos</button>
+                </div>
+            </div>
+
+            <textarea id="video-input" placeholder="Format: YouTube URL;Timestamps;Descriptions&#10;One video per line&#10;Example: https://youtu.be/u-GeMr7G6ho;3:10,4:36;Wall clock,Back dorsal"></textarea>
+            
             <div class="volume-container">
                 <label for="volume-slider">Alarm Volume:</label>
                 <input type="range" id="volume-slider" min="0" max="1" step="0.1" value="0.5">
             </div>
-            <button onclick="addVideosFromTextarea()">Add Videos</button>
 
             <table id="video-table">
                 <thead>
                     <tr>
-                        <th>Video URL</th>
+                        <th>Video</th>
                         <th>Timestamps</th>
                         <th>Descriptions</th>
                         <th>Action</th>
@@ -163,13 +228,13 @@
         </div>
         <div class="video-section">
             <h3>Current Stretch</h3>
-            <iframe id="stretch-video" src="" frameborder="0" allowfullscreen></iframe>
+            <iframe id="stretch-video" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
             <p id="stretch-description"></p>
         </div>
     </div>
 
     <div class="footer">
-        Made with ❤️ by <a href="https://github.com/justindachille" target="_blank">Justin</a> | <a href="https://github.com/justindachille/Stretcher">Code</a>
+        Made with ❤️ by <a href="https://github.com/yourusername" target="_blank">Justin</a>
     </div>
 
     <audio id="alarm" src="./cool_sms.mp3"></audio>
@@ -187,7 +252,7 @@
             "default": [
                 "https://youtu.be/u-GeMr7G6ho;3:10,4:36,5:32,6:12;Wall clock,Back dorsal,Back lateral,Hip",
                 "https://youtu.be/DC1Z9acFQaY;0:57,2:45,4:00,5:10;Half-kneeling stretch,Doorway pec stretch,Lat stretch,Spinal extension"
-            ],
+            ]
         };
 
         // Load saved data from localStorage on page load
@@ -303,7 +368,7 @@
         function parseInterval(input) {
             const parsed = parseFloat(input);
             if (isNaN(parsed)) {
-                alert('Invalid interval. Please enter a number.');
+                alert('Please enter a valid number for the interval.');
                 return 0;
             }
             return parsed * 60;
@@ -365,9 +430,26 @@
             return num.toString().padStart(2, '0');
         }
 
+        function clearTextarea() {
+            document.getElementById('video-input').value = '';
+        }
+
+        function loadPresetIntoTextarea() {
+            const presetSelect = document.getElementById('preset-select');
+            const presetName = presetSelect.value;
+            
+            if (!presetName) return;
+            
+            const presetVideos = presets[presetName];
+            if (presetVideos) {
+                document.getElementById('video-input').value = presetVideos.join('\n');
+            }
+        }
+
         function addVideosFromTextarea() {
             const videoInput = document.getElementById('video-input');
             const videoLines = videoInput.value.trim().split('\n');
+            let addedCount = 0;
 
             videoLines.forEach(line => {
                 const [videoUrl, timestamps, descriptions] = line.split(';');
@@ -375,16 +457,28 @@
                 if (videoUrl && timestamps && descriptions) {
                     const videoId = extractYouTubeId(videoUrl);
                     
-                    videos.push({
-                        id: videoId,
-                        timestamps: timestamps.split(','),
-                        descriptions: descriptions.split(',')
-                    });
+                    // Check if this video already exists
+                    const exists = videos.some(v => v.id === videoId);
+                    
+                    if (!exists) {
+                        videos.push({
+                            id: videoId,
+                            timestamps: timestamps.split(','),
+                            descriptions: descriptions.split(',')
+                        });
+                        addedCount++;
+                    }
                 }
             });
 
-            updateVideoList();
-            saveVideosToLocalStorage();
+            if (addedCount > 0) {
+                updateVideoList();
+                saveVideosToLocalStorage();
+                showClipboardNotification(`Added ${addedCount} new videos!`);
+            } else {
+                showClipboardNotification('No new videos added (duplicates skipped)');
+            }
+            
             videoInput.value = '';
         }
 
@@ -399,10 +493,22 @@
 
             videos.forEach((video, index) => {
                 const row = videoList.insertRow();
-                row.insertCell(0).textContent = `YouTube Video: ${video.id}`;
+                
+                // Video cell with clickable link
+                const videoCell = row.insertCell(0);
+                const videoLink = document.createElement('a');
+                videoLink.href = `https://youtu.be/${video.id}`;
+                videoLink.textContent = `Video: ${video.id}`;
+                videoLink.target = '_blank';
+                videoCell.appendChild(videoLink);
+                
+                // Timestamps
                 row.insertCell(1).textContent = video.timestamps.join(', ');
+                
+                // Descriptions
                 row.insertCell(2).textContent = video.descriptions.join(', ');
                 
+                // Delete button
                 const deleteCell = row.insertCell(3);
                 const deleteBtn = document.createElement('button');
                 deleteBtn.textContent = 'Delete';
@@ -411,6 +517,7 @@
                     videos.splice(index, 1);
                     updateVideoList();
                     saveVideosToLocalStorage();
+                    showClipboardNotification('Video removed');
                 };
                 deleteCell.appendChild(deleteBtn);
             });
@@ -418,7 +525,7 @@
 
         function playRandomStretch() {
             if (videos.length === 0) {
-                alert('Please add some stretch videos first!');
+                showClipboardNotification('Please add some stretch videos first!');
                 return;
             }
 
@@ -441,6 +548,8 @@
 
             video.src = `https://www.youtube.com/embed/${videoId}?start=${convertTimestampToSeconds(timestamp)}&autoplay=1`;
             descriptionElement.textContent = description;
+            
+            showClipboardNotification(`Now stretching: ${description}`);
         }
 
         function convertTimestampToSeconds(timestamp) {
@@ -459,40 +568,21 @@
             ).join('\n');
 
             navigator.clipboard.writeText(exportText).then(() => {
-                showClipboardNotification();
+                showClipboardNotification('Videos copied to clipboard!');
             });
         }
 
-        function loadPreset() {
-            const presetSelect = document.getElementById('preset-select');
-            const presetName = presetSelect.value;
+        // Enhanced notification function
+        function showClipboardNotification(message) {
+            const notification = document.getElementById('clipboard-notification');
+            notification.textContent = message;
+            notification.style.opacity = '1';
+            notification.style.transform = 'translate(-50%, -20px)';
             
-            if (!presetName) return;
-            
-            const presetVideos = presets[presetName];
-            if (presetVideos) {
-                // Clear current videos
-                videos = [];
-                
-                // Add preset videos
-                presetVideos.forEach(line => {
-                    const [videoUrl, timestamps, descriptions] = line.split(';');
-                    
-                    if (videoUrl && timestamps && descriptions) {
-                        const videoId = extractYouTubeId(videoUrl);
-                        
-                        videos.push({
-                            id: videoId,
-                            timestamps: timestamps.split(','),
-                            descriptions: descriptions.split(',')
-                        });
-                    }
-                });
-
-                updateVideoList();
-                saveVideosToLocalStorage();
-                alert(`Loaded ${presetName} preset with ${presetVideos.length} videos!`);
-            }
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transform = 'translate(-50%, 0)';
+            }, 3000);
         }
 
         // Save timer state when the page is about to unload
